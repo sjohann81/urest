@@ -1,18 +1,22 @@
 # uREST - A simple protocol for REST operations over UDP
 
-The protocol presented in this document is based on a request/response model, and can be seen as a reduced and much simplified version of the Constrained Application Protocol (CoAP). Some concepts are similar to CoAP, although the protocol is not based on it. Applications of this protocol include systems where memory and communication bandwidth is are strictly limited resources, such as sensor networks, home appliances and machine-to-machine (M2M) communication. In this protocol, a client/server model is used and entities are referenced as *initiator* and *responder* respectively.
+The protocol presented in this document is based on a request/response model, and can be seen as a reduced and much simplified version of the Constrained Application Protocol (CoAP). Some concepts are similar to CoAP, although the protocol is not directly based on it. Applications of this protocol include systems where memory and communication bandwidth is are strictly limited resources, such as sensor networks, home appliances and machine-to-machine (M2M) communication. In this protocol, a client/server model is used and entities are referenced as *initiator* and *responder* respectively.
+
+Usage of an IP based stack as the underlying transport mechanism is not mandatory, and this can reduce even more the resources needed for an application. For example, some simple RF transducers already define a frame format consisting of source and destination addresses, along with error checking for the payload. In this case, an UDP header consisting of source and destination ports, payload size and CRC can be transferred directly over frames, and used as a transport layer for uREST messages.
 
 
 ## 1 - Transaction actors
 
+A transaction is defined as a complete transfer of data between two parties, including data from a request operation and data from a corresponding response operation. In this protocol, a transaction occours between an *initiator* and a *responder*.
+
 ### 1.1 - Initiator
 
-An initiator is the client of a transaction (origin on a request, destination on a response). Verbs/methods similar to HTTP are used. A transaction may be composed of several messages and is coordinated by the initiator. The initiator defines the flow of data and retransmissions, acting as a master.
+An initiator is the client of a transaction (origin on a request, destination on a response). Verbs/methods similar to HTTP are used. A transaction may be composed of several messages and is coordinated by the initiator. The initiator defines the flow of data and retransmissions, acting as a master and defining requests which may be composed by one or more messages.
 
 
 ### 1.2 - Responder
 
-A responder is the server of a transaction (destination on a request, origin on a response). Response codes similar to HTTP are used. The responder acts as a slave of the initiator, accepting requests or partial requests from it. A response may be composed of several packets, and the flow of data is coordinated by the initiator.
+A responder is the server of a transaction (destination on a request, origin on a response). Response codes similar to HTTP are used. The responder acts as a slave of the initiator, accepting requests or partial requests from it. A response may be composed of several messages, and the flow of data is coordinated by the initiator.
 
 
 ## 2 - URIs and resources
