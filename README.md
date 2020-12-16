@@ -23,7 +23,7 @@ A responder is the server of a transaction (destination on a request, origin on 
 - ACK_TIMEOUT: 2 s
 - MAX_RETRANSMIT: 3
 
-Transmission is performed by single messages (unsolicited / non-confimable) or request/response pairs. Retransmission is performed using timeout and exponential back-off. A transmission is controlled by the initiator following a two-message protocol:
+Transmission is performed by single messages (unsolicited / non-confirmable) or request/response pairs. Retransmission is performed using timeout and exponential back-off. A transmission is controlled by the initiator following a two-message protocol:
 
 - Initiator performs a request (REQ) operation (or partial request)
 - Responder acknowledges the reception with an (ACK) operation (without any content) or acknowledges and returns data.
@@ -143,7 +143,7 @@ Type is a two bit field, encoding the four possible message types: '00' - unsoli
 
 ### 8.4 - Methods and response codes
 
-Methods and response codes are enconded in 6 bits, decomposed in two fields: first two bits encode the verb/method/response major opcode and the last four encode the minor opcode. Minor opcode is encoded in the second field as four bits, following the equivalent binary representation. The meaning of first field two bits are: '00' - verb/method, '01' - success (codes 2.xx), '10' - client error (codes 4.xx) and '11' - server error (codes 5.xx).
+Methods and response codes are enconded in 6 bits, decomposed in two fields: first two bits encode the verb/method/response major opcode and the last four encode the minor opcode. Minor opcode is encoded in the second field as four bits, following the equivalent binary representation. The meaning of first field two bits is: '00' - verb/method, '01' - success (codes 2.xx), '10' - client error (codes 4.xx) and '11' - server error (codes 5.xx).
 
 #### 8.4.1 - Success
 
@@ -178,16 +178,15 @@ Reserved for future use.
 
 ### 8.6 - Content-type
 
-- 0 - reserved
-- 1 - json encoded
-- 2 - raw base64 encoded
-- 3 - raw
+The content-type field is used to describe the actual format of data encoded in the payload. Only three formats are presented in this specification, and other formats may be used in the future. This field is represented as three bits, and the meaning of these bits is: '001' - json encoded (type 1), '010' - raw base64 encoded (type 2) and '011' - raw (type 3). Other values ('000' and '100' to '111') are reserved for future use.
 
 ### 8.7 - Payload encoding
 
-- Type 1 (json encoded) -  On a request method, data should start with a 'uri' field, containing the relative path to the resource in the server. For both requests and responses, data is encoded in aditional fields, containing the application specific data format. Traditional URL encoded fields (using something like '/urlencoded?firstname=sid&lastname=sloth') are not supported.
-- Type 2 (raw base64 encoded)
-- Type 3 (raw)
+Payload encoding follows the type of content specified in the content-type header field. The most common encoding used is type 1 (json encoded) and this encoding scheme should be used at least on the first request, as a URI representing a resource must be present. The application of different formats is specified as:
+
+- Type 1 (json encoded) -  On a request method, data should start with a 'uri' field, containing the relative path to the resource in the server. For both requests and responses, data is encoded in aditional fields, containing the application specific data format. Traditional URI encoded fields (using something like '/urlencoded?firstname=sid&lastname=sloth') are not supported. If binary data is transfered in a field, it should be represented using base64 encoding.
+- Type 2 (raw base64 encoded) - Binary data, plain text, represented using base64 encoding.
+- Type 3 (raw) - Binary data, optimized for less overhead and used on large transfers.
 
 
 ## 9 - Unicast / multicast
