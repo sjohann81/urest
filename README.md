@@ -110,7 +110,7 @@ Transfers can happen in piggybacked mode, where the responder includes the resul
 
 ### 6.2 - Common mode
 
-When processing time is greater than one second (or ACK_TIMEOUT/2) or no piggybacked mode is used, the last message from the initiator is confirmed with a code 2.02 (accepted), and it is up to the initiator to poll the responder periodically for data (example 'a'). If not ready, the responder must answer with a code 2.02 (accepted) and return no data, until it is ready. Then, it answers with a code 2.00 (ok) when no more content needs be transferred or with a code 2.06 (continue) when more content is available. If no data is returned and the response code is 2.02 (accepted), the initiator assumes the responder is processing, and in this case the sequence number must stay the same.
+When processing time is greater than one second (or ACK_TIMEOUT/2) or no piggybacked mode is used, the last message from the initiator is confirmed with a code 2.02 (accepted), and it is up to the initiator to poll the responder periodically for data (example 'a'). If not ready, the responder must answer with a code 2.02 (accepted) and return no data, until it is ready. Then, it answers with a code 2.00 (ok) when no more content needs be transferred or with a code 2.06 (continue) when more content is available. If no data is returned and the response code is 2.02 (accepted), the initiator assumes the responder is processing, and in this case the sequence number must stay the same until data starts to be transfered from the responder. If only a single message is returned as a response (code 2.00), then the sequence number doesn't change.
 
 ### 6.3 - Concurrent transactions
 
