@@ -1,6 +1,6 @@
 # uREST - A simple protocol for REST operations over UDP
 
-The protocol is based on a request/response model, and can be seen as a reduced and much simplified version of the Constrained Application Protocol (CoAP). Applications of this protocol include systems where memory is a limited resource, such as sensor networks and home appliances. In this protocol, a client/server model is used and entities are referenced as *initiator* and *responder* respectively.
+The protocol is based on a request/response model, and can be seen as a reduced and much simplified version of the Constrained Application Protocol (CoAP). Applications of this protocol include systems where memory is a limited resource, such as sensor networks, home appliances and machine-to-machine (M2M). In this protocol, a client/server model is used and entities are referenced as *initiator* and *responder* respectively.
 
 
 ## Initiator
@@ -97,6 +97,7 @@ When processing time is greater than one second (or ACK_TIMEOUT/2), the last mes
 
 Transactions can happen concurrently, and it is up to the responder to keep track of multiple transactions from different initiators. If a responder is resource constrained and can only keep track of a single transaction, or is currently overloaded, it should just ignore a request of a new transaction from the initiator. It is up to the initiator to interpret this as a message loss and perform a retransmission.
 
+
 ## Verbs / methods
 
 - 0.01 - GET
@@ -160,7 +161,6 @@ Methods and response codes are enconded in 6 bits, decomposed in two fields: fir
 
 Reserved for future use.
 
-
 ### Content-type
 
 - 0 - reserved
@@ -168,12 +168,12 @@ Reserved for future use.
 - 2 - raw base64 encoded
 - 3 - raw
 
-
 ### Payload encoding
 
 - Type 1 (json encoded) -  On a request method, data should start with a 'uri' field, containing the relative path to the resource in the server. For both requests and responses, data is encoded in aditional fields, containing the application specific data format. Traditional URL encoded fields (using something like '/urlencoded?firstname=sid&lastname=sloth') are not supported.
 - Type 2 (raw base64 encoded)
 - Type 3 (raw)
+
 
 ## Unicast / multicast
 
