@@ -21,6 +21,11 @@ A responder is the server of a transaction (destination on a request, origin on 
 
 ## 2 - URIs and resources
 
+Resources in this protocol are identified by a URI format which locates the resource in a hierarchical structure. The responder is identified by the underlying addressing scheme employed in the network layer, including an address or host name and a UDP port. A resource in this responder is identified with an absolute path to the resource, encoded as a parameter on the initiator payload, represented in json format.
+
+### 2.1 - URI scheme
+
+URIs are encoded with three main components: the protocol name, server and port identification and resource path. For example: *'urest://server:port/path/to/the/resource'*. The first two parts are used to identify the protocol and host acting as the responder. The last part is transferred by the initiator on the payload of the first request using the syntax *{"uri": "/path/to/the/resource"}*.
 
 ## 3 - Transmission parameters
 
@@ -40,17 +45,17 @@ Unsolicited messages are used for non-confirmable requests or responses and no r
 
 ## 4 - Message format
 
-A message is composed by an 8 byte header followed by a payload. A transaction can be split in multiple messages, and each message must be transmitted in a UDP datagram. Maximum UDP payload considered in this specification is 512 bytes. On large transactions, multiple messages are needed (series of REQs and ACKs) if the last transmitted message payload is full (504 bytes). Unsolicited messages are limited to a single, individual message without any confirmation.
+A message is composed by an 8 byte header followed by a payload. A transaction can be split in multiple messages, and each message must be transmitted in a UDP datagram. Maximum UDP payload considered in this specification is 512 bytes. On large transactions, multiple messages are needed (series of REQs and ACKs) if the last transmitted message payload is full (506 bytes). Unsolicited messages are limited to a single, individual message without any confirmation.
 
 ### 4.1 - Message header
 
-- Token / transaction ID (32 bits)
+- Token / transaction ID (16 bits)
 - Sequence number (16 bits)
 - Type (UNS, REQ, ACK, RST) (2 bits)
 - Method / response (6 bits - 2 bits for major code, 4 bits for minor code)
 - Options (5 bits)
 - Content type (3 bits - type)
-- Payload (504 bytes)
+- Payload (506 bytes)
 
 
 ## 5 - Message types, tokens and sequence numbers
@@ -77,7 +82,7 @@ A transaction is composed by a single unsolicited message, which can be either a
 
 	initiator               responder               initiator               responder
 	|                       |                       |                       |
-	|   REQ (seq 0, 504B)   | 0.01 (GET)            |   REQ (seq 0, 504B)   | 0.01 (GET)
+	|   REQ (seq 0, 506B)   | 0.01 (GET)            |   REQ (seq 0, 506B)   | 0.01 (GET)
 	|---------------------->| token: 0x00000000     |---------------------->| token: 0x00000000
 	|                       |                       |                       |
 	|   ACK (seq 0, 0B)     | 2.06 (continue)       |   ACK (seq 0, 0B)     | 2.06 (continue)
@@ -94,8 +99,8 @@ A transaction is composed by a single unsolicited message, which can be either a
 	|   REQ (seq 2, 0B)     | 0.01 (GET)
 	|---------------------->| token: 0xaabbccdd
 	|                       |                       initiator               responder
-	|   ACK (seq 2, 504B)   | 2.06 (continue)       |                       |
-	|<----------------------| token: 0xaabbccdd     |   REQ (seq 0, 0B)     | 0.01 (GET)
+	|   ACK (seq 2, 506B)   | 2.06 (continue)       |                       |
+	|<----------------------| token: 0xaabbccdd     |   REQ (seq 0, 170B)   | 0.01 (GET)
 	|                       |                       |---------------------->| token: 0x00000000
 	|   REQ (seq 3, 0B)     | 0.01 (GET)            |                       |
 	|---------------------->| token: 0xaabbccdd     |    (processing...)    |
