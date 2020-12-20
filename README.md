@@ -21,11 +21,28 @@ A responder is the server of a transaction (destination on a request, origin on 
 
 ## 2 - URIs and resources
 
-Resources in this protocol are identified by a URI format which locates the resource in a hierarchical structure. The responder is identified by the underlying addressing scheme employed in the network layer, including an address or host name and a UDP port. A resource in this responder is identified with an absolute path to the resource, encoded as a parameter on the initiator payload, represented in json format.
-
 ### 2.1 - URI scheme
 
 URIs are encoded with three main components: the protocol name, server and port identification and resource path. For example: *'urest://server:port/path/to/the/resource'*. The first two parts are used to identify the protocol and host acting as the responder. The last part is transferred by the initiator on the payload of the first request using the syntax *{"uri": "/path/to/the/resource"}*.
+
+### 2.2 - Resources
+
+Resources in this protocol are identified by a URI format which locates the resource in a hierarchical structure of resources. The responder is identified by the underlying addressing scheme employed in the network layer, including an address or host name and a UDP port. A resource in this responder is identified with an absolute path to the resource, encoded as a parameter on the initiator payload, represented in JSON or uREST format.
+
+On a request method, data should start with an individual object, composed by a 'uri' field (JSON) or a string field (uREST) containing the relative path to the resource in the server, followed by additional data. For both requests and responses, data is encoded in aditional fields, containing the application specific format. Traditional URI encoded fields (using something like '/urlencoded?firstname=sid&lastname=sloth') are not supported.
+
+#### 2.2.1 - Examples:
+
+Request:
+
+- JSON encoded -> {{"uri": "/path/to/resource"}, { ... data ... }}
+- uREST enconded -> {{s:%%/path/to/resource%%},{ ... data ... }}
+
+Response:
+
+- { ... data ... }
+
+
 
 ## 3 - Transmission parameters
 
@@ -187,17 +204,76 @@ Reserved for future use.
 
 ### 8.6 - Content-type
 
-The content-type field is used to describe the actual format of data encoded in the payload. Only three formats are presented in this specification, and other formats may be used in the future. This field is represented as three bits, and the meaning of these bits is: '001' - json encoded (type 1), '010' - raw base64 encoded (type 2) and '011' - raw (type 3). Other values ('000' and '100' to '111') are reserved for future use.
+The content-type field is used to describe the actual format of data encoded in the payload. Only three formats are presented in this specification, and other formats may be used in the future. This field is represented as three bits, and the meaning of these bits is: '001' - JSON encoded (type 1), '010' - urest encoded (type 2), '011' - raw base64 encoded (type 3) and '100' - raw (type 4). Other values ('000' and '101' to '111') are reserved for future use.
 
 ### 8.7 - Payload encoding
 
 Payload encoding follows the type of content specified in the content-type header field. The most common encoding used is type 1 (json encoded) and this encoding scheme should be used at least on the first request, as a URI representing a resource must be present. The application of different formats is specified as:
 
-- Type 1 (json encoded) -  On a request method, data should start with a 'uri' field, containing the relative path to the resource in the server. For both requests and responses, data is encoded in aditional fields, containing the application specific data format. Traditional URI encoded fields (using something like '/urlencoded?firstname=sid&lastname=sloth') are not supported. If binary data is transfered in a field, it should be represented using base64 encoding.
-- Type 2 (raw base64 encoded) - Binary data, plain text, represented using base64 encoding.
-- Type 3 (raw) - Binary data, optimized for less overhead and used on large transfers.
+- Type 1 (JSON encoded) - Common serialization format. If binary data is transfered in a field, it should be represented in base64 encoding.
+- Type 2 (uREST encoded) - Basic serialization format, suitable for easy parsing of data.
+- Type 3 (raw base64 encoded) - Binary data, plain text, represented using base64 encoding.
+- Type 4 (raw) - Binary data, optimized for less overhead and used on large transfers.
 
 
-## 9 - Unicast / multicast
+## 9 - uREST encoding and data serialization
+
+uREST encoding is defined by a simple serialization format, suitable for compact data representation. The format is organized for easy parsing of data, supporting several features which make it ideal for use on resource constrained systems. On applications where only the memory data layout is important, data structure delimiters can be simply ignored. Some features:
+
+- Easy parsing of data
+- Easy syntax, no scape codes
+- Suitable for compact data representation
+- Supports generic data types or alternatives for strongly typed representation of data
+- Arrays / lists. Full records are separated by a new line (0x0a) character as a delimiter
+- Supports data structures
+
+### 9.1 - Basic types
+
+- 'i' - integer
+- 'f' - float
+- 's' - string
+- 'b' - blob / base64 encoded
+
+### 9.2 - Delimiters
+
+- '{ .. }' - data structure
+- ':' - data type and value separator
+- ',' - data item saparator
+- ';' - list / array item separator
+- '%% .. %%' - string
+
+### 9.3 - Example
+
+	struct s {
+		int a;
+		float b;
+		char c[30];
+		struct s_s {
+			float d, e;
+		};
+		int f[3];
+	};
+
+	{i:1234,f:55.123,s:%%hello world%%,{f:75.5555,f:9.5},i:5093;-6467;253}
+
+### 9.4 - Extended data types
+
+Additional types, suitable for strongly typed applications:
+
+- 'Sc' - Signed 8 bit integer (char type, int8_t)
+- 'Uc' - Unsigned 8 bit integer (unsigned char type, uint8_t)
+- 'Ss' - Signed 16 bit integer (short type, int16_t)
+- 'Us' - Unsigned 16 bit integer (unsigned short type, uint16_t)
+- 'Si' - Signed 32 bit integer (int type, int32_t)
+- 'Ui' - Unsigned 32 bit integer (unsigned int type, uint32_t)
+- 'Sl' - Signed 64 bit integer (long long type, int64_t)
+- 'Ul' - Unsigned 64 bit integer (unsigned long long type, uint64_t)
+- 'Sf' - Single precision floating-point (float type, float32_t)
+- 'Df' - Double precision floating-point (double type, float64_t)
+
+In this case, the exact representation of the third field presented in the example from the last structure (*char c[30]*) would become an array *Sc:104;101;108;108;111 ...* instead of *s:%%hello world%%*. If only part of an array is used, the remaining items should be filled with zeroes.
+
+
+## 10 - Unicast / multicast
 
 Transactions in this specification follow the client/server model, and are viewed as unicast operations. Multicast operations can be implemented only with unsolicited messages and as such, are unconfirmed by the recipients. Multicast delivery is a responsability of the lower layers of the network stack.
