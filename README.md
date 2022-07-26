@@ -285,7 +285,7 @@ uREST encoding is defined by a simple serialization format, suitable for compact
 
 The flat encoding data format represents data as key value pairs. A pair is encoded as two successive fields and there is only one field delimiter (:). The field delimiter can be escaped with a backslash (\). Odd fields represent keys and even fields represent data. For example, to encode one integer, a float and a string, the following syntax is used:
 
-:num1:1234:num2:123.456:strval:hello world
+:num1:555num2:123.456:strval:hello world
 
 In this format, binary data should be encoded in base32, without any padding.
 
